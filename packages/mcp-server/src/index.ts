@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createServer } from "./server.js";
-import type { EmbedderKind, StoreKind } from "@osb/memory-node";
+import type { EmbedderKind, LlmKind, StoreKind } from "@osb/memory-node";
 
 /**
  * Entry point for the stdio MCP server.
@@ -20,6 +20,8 @@ async function main(): Promise<void> {
     vaultDir,
     embedder: process.env.OSB_EMBEDDER as EmbedderKind | undefined,
     store: process.env.OSB_STORE as StoreKind | undefined,
+    llm: process.env.OSB_LLM as LlmKind | undefined,
+    projectsFolder: process.env.OSB_PROJECTS,
   });
 
   const transport = new StdioServerTransport();

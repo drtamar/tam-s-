@@ -75,8 +75,24 @@ export {
 } from "./optimize/autoLink.js";
 export { generateTagMoc, type MocResult } from "./optimize/moc.js";
 
+// Projects / second memory system (brain-dump router)
+export type {
+  BrainDump,
+  DumpCategory,
+  LlmClient,
+  ProjectProfile,
+  RoutingProposal,
+} from "./projects/types.js";
+export { loadProjects } from "./projects/loadProjects.js";
+export { BrainDumpRouter, type RouterOptions } from "./projects/router.js";
+export {
+  dumpFromText,
+  extractDumpsFromFolder,
+} from "./projects/extract.js";
+
 // Convenience loaders + utils
 export { loadVault, searchNotes, type LoadedVault } from "./loadVault.js";
 export { idToPath, noteTitle, pathToId } from "./util/ids.js";
 export { slugify } from "./util/slugify.js";
 export { cosineSimilarity } from "./util/cosine.js";
+export { appendUnderHeading } from "./util/markdown.js";

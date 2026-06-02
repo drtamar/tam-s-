@@ -12,3 +12,12 @@ export {
   type EmbedderKind,
   type StoreKind,
 } from "./factory.js";
+export {
+  OpenAiChatClient,
+  type OpenAiChatClientOptions,
+} from "./OpenAiChatClient.js";
+export {
+  AnthropicChatClient,
+  type AnthropicChatClientOptions,
+} from "./AnthropicChatClient.js";
+export { createLlmClient, type LlmKind } from "./llmFactory.js";

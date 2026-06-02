@@ -6,10 +6,12 @@ import {
   loadVault,
   searchNotes,
 } from "@osb/core";
-import type { EmbedderKind, StoreKind } from "@osb/memory-node";
+import type { EmbedderKind, LlmKind, StoreKind } from "@osb/memory-node";
 import { createMemory } from "./context.js";
 import { formatGraphStats, graphStats } from "./commands/graph.js";
 import { formatOptimizeReport, optimizeVault } from "./commands/optimize.js";
+import { formatRouteOutcomes, routeBrainDumps } from "./commands/route.js";
+import { syncPull, syncPush } from "./commands/sync.js";
 
 interface GlobalOpts {
   vault: string;
@@ -104,6 +106,54 @@ program
       tags: opts.tags,
     });
     console.log(formatOptimizeReport(report));
+  });
+
+program
+  .command("route")
+  .description("Second memory: classify brain dumps to projects and append summaries")
+  .option("-d, --dump <text>", "route a single brain dump given as text")
+  .option("-i, --inbox <folder>", "folder of capture notes to route", "Inbox")
+  .option("-p, --projects <folder>", "projects folder", "Projects")
+  .option("--llm <kind>", "llm provider: openai | anthropic", "openai")
+  .option("--apply", "write the summaries into project notes (default: dry-run)", false)
+  .action(
+    async (opts: {
+      dump?: string;
+      inbox: string;
+      projects: string;
+      llm: LlmKind;
+      apply: boolean;
+    }) => {
+      const outcomes = await routeBrainDumps({
+        vault: globals().vault,
+        projects: opts.projects,
+        inbox: opts.inbox,
+        dump: opts.dump,
+        llm: opts.llm,
+        apply: opts.apply,
+      });
+      console.log(formatRouteOutcomes(outcomes));
+    },
+  );
+
+const sync = program
+  .command("sync")
+  .description("Sync the vault between Google Drive and a local mirror");
+sync
+  .command("pull")
+  .description("Download the Drive vault into the local mirror")
+  .requiredOption("-r, --root <folderId>", "Google Drive root folder id")
+  .option("-l, --local <dir>", "local mirror directory", process.cwd())
+  .action(async (opts: { root: string; local: string }) => {
+    console.log(await syncPull({ root: opts.root, local: opts.local }));
+  });
+sync
+  .command("push")
+  .description("Upload local changes back to the Drive vault")
+  .requiredOption("-r, --root <folderId>", "Google Drive root folder id")
+  .option("-l, --local <dir>", "local mirror directory", process.cwd())
+  .action(async (opts: { root: string; local: string }) => {
+    console.log(await syncPush({ root: opts.root, local: opts.local }));
   });
 
 program.parseAsync().catch((err) => {

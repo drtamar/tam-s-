@@ -1,8 +1,11 @@
 import {
+  BrainDumpRouter,
   MemoryService,
   NodeVaultReader,
   createNote,
+  dumpFromText,
   getBacklinks,
+  loadProjects,
   loadVault,
   searchNotes,
   shortestPath,
@@ -12,8 +15,10 @@ import {
 } from "@osb/core";
 import {
   createEmbedder,
+  createLlmClient,
   createVectorStore,
   type EmbedderKind,
+  type LlmKind,
   type StoreKind,
 } from "@osb/memory-node";
 
@@ -21,6 +26,8 @@ export interface VaultContextOptions {
   vaultDir: string;
   embedder?: EmbedderKind;
   store?: StoreKind;
+  llm?: LlmKind;
+  projectsFolder?: string;
 }
 
 /**
@@ -117,5 +124,23 @@ export class VaultContext {
     const result = await createNote(this.vault, input);
     this.#invalidate();
     return result;
+  }
+
+  async listProjects() {
+    const projects = await loadProjects(
+      this.vault,
+      this.#options.projectsFolder ?? "Projects",
+    );
+    return projects.map((p) => ({ id: p.id, title: p.title }));
+  }
+
+  /** Classify + summarize a brain dump to a project (dry-run proposal). */
+  async routeBrainDump(text: string, source?: string) {
+    const projects = await loadProjects(
+      this.vault,
+      this.#options.projectsFolder ?? "Projects",
+    );
+    const router = new BrainDumpRouter(this.vault, createLlmClient(this.#options.llm ?? "openai"));
+    return router.route({ ...dumpFromText(text), source }, projects);
   }
 }

@@ -72,6 +72,28 @@ export function createServer(options: VaultContextOptions): McpServer {
   );
 
   server.registerTool(
+    "list_projects",
+    {
+      description: "List the projects the second memory system can route brain dumps into.",
+      inputSchema: {},
+    },
+    async () => json(await ctx.listProjects()),
+  );
+
+  server.registerTool(
+    "route_braindump",
+    {
+      description:
+        "Second memory system: classify a brain dump to the best-matching project and return a summarized, routable proposal (does not write). Requires an LLM API key configured on the server.",
+      inputSchema: {
+        text: z.string().describe("The raw brain dump text"),
+        source: z.string().optional().describe("Optional source note id to link back to"),
+      },
+    },
+    async ({ text, source }) => json(await ctx.routeBrainDump(text, source)),
+  );
+
+  server.registerTool(
     "create_note",
     {
       description:

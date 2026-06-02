@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@osb/core": "workspace:*",
+    "@osb/drive": "workspace:*",
     "@osb/memory-node": "workspace:*",
     "commander": "^13.1.0"
   },
