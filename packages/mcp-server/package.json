@@ -1,0 +1,27 @@
+{
+  "name": "@osb/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server exposing an Obsidian vault as an AI memory graph over stdio.",
+  "type": "module",
+  "bin": {
+    "osb-mcp": "./dist/index.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@osb/core": "workspace:*",
+    "@osb/memory-node": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}

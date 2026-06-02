@@ -1,0 +1,35 @@
+{
+  "name": "@osb/memory-node",
+  "version": "0.1.0",
+  "description": "Node-only memory backends: local embeddings (Transformers.js) and vector stores (JSON, sqlite-vec).",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@osb/core": "workspace:*"
+  },
+  "optionalDependencies": {
+    "@huggingface/transformers": "^3.3.0",
+    "better-sqlite3": "^11.8.0",
+    "sqlite-vec": "^0.1.6"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}
