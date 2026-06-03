@@ -10,9 +10,13 @@ export interface MemorySnapshot {
   areas: { title: string; body: string }[];
 }
 
-/** First non-empty, trimmed line of a block of text. */
+/** First descriptive line of a block of text — skips H1/H2 headings. */
 function firstLine(text: string, max = 160): string {
-  const line = text.split(/\r?\n/).map((l) => l.trim()).find(Boolean) ?? "";
+  const line =
+    text
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .find((l) => l && !/^#{1,3}\s/.test(l)) ?? "";
   return line.length > max ? `${line.slice(0, max - 1)}…` : line;
 }
 
