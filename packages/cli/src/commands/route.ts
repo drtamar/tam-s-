@@ -1,20 +1,20 @@
 import {
   BrainDumpRouter,
   NodeVaultReader,
+  createLlmClient,
   dumpFromText,
   extractDumpsFromFolder,
-  loadProjects,
+  loadCollections,
+  routerOptionsFromConfig,
   type BrainDump,
   type RoutingProposal,
 } from "@osb/core";
-import { createLlmClient, type LlmKind } from "@osb/memory-node";
+import { loadMemoryConfig } from "@osb/memory-node";
 
 export interface RouteFlags {
   vault: string;
-  projects?: string;
   inbox?: string;
   dump?: string;
-  llm?: LlmKind;
   apply?: boolean;
 }
 
@@ -25,22 +25,23 @@ export interface RouteOutcome {
 
 /**
  * The second memory system from the CLI: classify brain dumps (a single
- * `--dump` string, or every note in an `--inbox` folder) to projects and, with
- * `--apply`, append summaries under each project's log.
+ * `--dump` string, or every note in the inbox folder) to projects/areas and,
+ * with `--apply`, append summaries under each collection's log.
  */
 export async function routeBrainDumps(flags: RouteFlags): Promise<RouteOutcome[]> {
   const vault = new NodeVaultReader(flags.vault);
-  const projects = await loadProjects(vault, flags.projects ?? "Projects");
-  const llm = createLlmClient(flags.llm ?? "openai");
-  const router = new BrainDumpRouter(vault, llm);
+  const config = await loadMemoryConfig(flags.vault);
+  const collections = await loadCollections(vault, config.projectsFolder, config.areasFolder);
+  const llm = createLlmClient(config.llm.provider);
+  const router = new BrainDumpRouter(vault, llm, routerOptionsFromConfig(config));
 
   const dumps: BrainDump[] = flags.dump
     ? [dumpFromText(flags.dump)]
-    : await extractDumpsFromFolder(vault, flags.inbox ?? "Inbox");
+    : await extractDumpsFromFolder(vault, flags.inbox ?? config.inboxFolder);
 
   const outcomes: RouteOutcome[] = [];
   for (const dump of dumps) {
-    const proposal = await router.route(dump, projects);
+    const proposal = await router.route(dump, collections);
     const appliedTo = flags.apply ? await router.apply(proposal) : null;
     outcomes.push({ proposal, appliedTo });
   }
@@ -52,7 +53,8 @@ export function formatRouteOutcomes(outcomes: RouteOutcome[]): string {
   return outcomes
     .map(({ proposal: p, appliedTo }) => {
       const target =
-        p.category === "project" ? p.projectId : p.category === "about-me" ? "About Me" : "(unrouted)";
+        p.projectId ??
+        (p.newNote ? `${p.newNote.kind}: ${p.newNote.title} (new)` : p.category);
       const status = appliedTo ? `→ wrote ${appliedTo}` : "(dry-run)";
       return [
         `• ${p.dumpId}  [${p.category} ${(p.confidence * 100).toFixed(0)}%]  ${target}  ${status}`,

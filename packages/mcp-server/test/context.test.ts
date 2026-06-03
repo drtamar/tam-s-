@@ -60,4 +60,47 @@ describe("VaultContext (write)", () => {
     expect(result.path).toBe("memory/new-memory.md");
     expect((await ctx.graph()).byId.has("memory/new-memory")).toBe(true);
   });
+
+  it("appends under a heading and files a brain dump", async () => {
+    tmp = await fs.mkdtemp(path.join(os.tmpdir(), "osb-ctx-"));
+    await fs.mkdir(path.join(tmp, "Projects"), { recursive: true });
+    await fs.writeFile(path.join(tmp, "Projects", "Vetos.md"), "# Vetos\n");
+    const ctx = new VaultContext({ vaultDir: tmp });
+
+    const written = await ctx.fileBrainDump({
+      projectId: "Projects/Vetos",
+      summary: "- New logo mark",
+      source: "2026-06-02",
+    });
+    expect(written).toBe("Projects/Vetos.md");
+    const content = await fs.readFile(path.join(tmp, "Projects", "Vetos.md"), "utf8");
+    expect(content).toContain("## Log");
+    expect(content).toContain("New logo mark");
+    expect(content).toContain("Source: [[2026-06-02]]");
+  });
+
+  it("reads and updates the memory config", async () => {
+    tmp = await fs.mkdtemp(path.join(os.tmpdir(), "osb-ctx-"));
+    const ctx = new VaultContext({ vaultDir: tmp });
+
+    expect((await ctx.getConfig()).autonomy).toBe("confirm");
+    const updated = await ctx.setConfig({ autonomy: "auto", logHeading: "## Journal" });
+    expect(updated.autonomy).toBe("auto");
+    expect((await ctx.getConfig()).logHeading).toBe("## Journal");
+    // Persisted to disk
+    const onDisk = JSON.parse(
+      await fs.readFile(path.join(tmp, ".osb", "config.json"), "utf8"),
+    );
+    expect(onDisk.autonomy).toBe("auto");
+  });
+
+  it("builds a portable memory context", async () => {
+    tmp = await fs.mkdtemp(path.join(os.tmpdir(), "osb-ctx-"));
+    await fs.mkdir(path.join(tmp, "Projects"), { recursive: true });
+    await fs.writeFile(path.join(tmp, "Projects", "Vetos.md"), "# Vetos\n\nBranding.\n");
+    const ctx = new VaultContext({ vaultDir: tmp });
+    const context = await ctx.getMemoryContext();
+    expect(context).toContain("READ THIS FIRST");
+    expect(context).toContain("**Vetos**");
+  });
 });

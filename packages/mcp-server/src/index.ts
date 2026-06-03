@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createServer } from "./server.js";
-import type { EmbedderKind, LlmKind, StoreKind } from "@osb/memory-node";
+import type { EmbedderKind, StoreKind } from "@osb/memory-node";
 
 /**
  * Entry point for the stdio MCP server.
  *
  * Configure the vault via `OSB_VAULT` (or the first CLI arg). Optional env:
- * `OSB_EMBEDDER` = local | api | hash, `OSB_STORE` = json | sqlite.
+ * `OSB_EMBEDDER` = local | api | hash, `OSB_STORE` = json | sqlite. The
+ * memory-management policy lives in `<vault>/.osb/config.json` (see get/set_config).
  */
 async function main(): Promise<void> {
   const vaultDir = process.env.OSB_VAULT ?? process.argv[2];
@@ -20,8 +21,6 @@ async function main(): Promise<void> {
     vaultDir,
     embedder: process.env.OSB_EMBEDDER as EmbedderKind | undefined,
     store: process.env.OSB_STORE as StoreKind | undefined,
-    llm: process.env.OSB_LLM as LlmKind | undefined,
-    projectsFolder: process.env.OSB_PROJECTS,
   });
 
   const transport = new StdioServerTransport();

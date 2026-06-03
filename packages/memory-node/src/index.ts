@@ -12,12 +12,16 @@ export {
   type EmbedderKind,
   type StoreKind,
 } from "./factory.js";
+// LLM clients now live in @osb/core (pure, fetch-based). Re-exported here for
+// back-compat with the CLI/MCP server.
 export {
   OpenAiChatClient,
-  type OpenAiChatClientOptions,
-} from "./OpenAiChatClient.js";
-export {
   AnthropicChatClient,
+  createLlmClient,
+  type OpenAiChatClientOptions,
   type AnthropicChatClientOptions,
-} from "./AnthropicChatClient.js";
-export { createLlmClient, type LlmKind } from "./llmFactory.js";
+} from "@osb/core/llm";
+import type { LlmProvider } from "@osb/core";
+/** @deprecated use `LlmProvider` from `@osb/core`. */
+export type LlmKind = LlmProvider;
+export { loadMemoryConfig, saveMemoryConfig } from "./config.js";

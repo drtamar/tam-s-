@@ -75,20 +75,59 @@ export {
 } from "./optimize/autoLink.js";
 export { generateTagMoc, type MocResult } from "./optimize/moc.js";
 
+// Configuration policy ("what / how / why")
+export {
+  defaultConfig,
+  resolveConfig,
+  type Autonomy,
+  type AutoCreate,
+  type LlmProvider,
+  type MemoryConfig,
+} from "./config/MemoryConfig.js";
+
+// LLM clients (pure, fetch-based)
+export {
+  OpenAiChatClient,
+  AnthropicChatClient,
+  createLlmClient,
+  type LlmClientOptions,
+  type OpenAiChatClientOptions,
+  type AnthropicChatClientOptions,
+} from "./llm/index.js";
+
 // Projects / second memory system (brain-dump router)
 export type {
   BrainDump,
+  CollectionKind,
   DumpCategory,
   LlmClient,
+  NewCollection,
   ProjectProfile,
   RoutingProposal,
 } from "./projects/types.js";
-export { loadProjects } from "./projects/loadProjects.js";
-export { BrainDumpRouter, type RouterOptions } from "./projects/router.js";
+export {
+  loadProjects,
+  loadCollection,
+  loadCollections,
+} from "./projects/loadProjects.js";
+export {
+  BrainDumpRouter,
+  routerOptionsFromConfig,
+  type RouterOptions,
+} from "./projects/router.js";
 export {
   dumpFromText,
   extractDumpsFromFolder,
 } from "./projects/extract.js";
+
+// Organize / unify (review pass + portable memory loader)
+export { buildMemoryContext } from "./organize/memoryContext.js";
+export {
+  organizeVault,
+  type OrganizeOptions,
+  type OrganizeReport,
+  type RoutedOutcome,
+} from "./organize/organizeVault.js";
 
 // Convenience loaders + utils
 export { loadVault, searchNotes, type LoadedVault } from "./loadVault.js";

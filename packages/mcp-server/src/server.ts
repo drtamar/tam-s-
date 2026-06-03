@@ -74,7 +74,8 @@ export function createServer(options: VaultContextOptions): McpServer {
   server.registerTool(
     "list_projects",
     {
-      description: "List the projects the second memory system can route brain dumps into.",
+      description:
+        "List the projects and life-areas the second memory system can route brain dumps into.",
       inputSchema: {},
     },
     async () => json(await ctx.listProjects()),
@@ -84,13 +85,86 @@ export function createServer(options: VaultContextOptions): McpServer {
     "route_braindump",
     {
       description:
-        "Second memory system: classify a brain dump to the best-matching project and return a summarized, routable proposal (does not write). Requires an LLM API key configured on the server.",
+        "Second memory system: classify a brain dump to the best-matching project/area and return a summarized, routable proposal (does not write). Requires an LLM API key configured on the server.",
       inputSchema: {
         text: z.string().describe("The raw brain dump text"),
         source: z.string().optional().describe("Optional source note id to link back to"),
       },
     },
     async ({ text, source }) => json(await ctx.routeBrainDump(text, source)),
+  );
+
+  server.registerTool(
+    "append_to_note",
+    {
+      description:
+        "Append text under a heading in a note (creating the note/section if needed). The core memory-management write — use it to file a summary you wrote into a project's log or About Me.",
+      inputSchema: {
+        path: z.string().describe("Vault-relative note path, e.g. 'Projects/Vetos.md'"),
+        text: z.string().describe("Markdown to append"),
+        heading: z.string().optional().describe("Target heading; defaults to the configured log heading"),
+      },
+    },
+    async ({ path, text, heading }) => json({ written: await ctx.appendToNote(path, text, heading) }),
+  );
+
+  server.registerTool(
+    "file_braindump",
+    {
+      description:
+        "File a brain dump you have already classified: appends a dated, optionally backlinked summary under the target project/area's log. Use after deciding the destination yourself (no server-side LLM needed).",
+      inputSchema: {
+        projectId: z.string().describe("Target collection id (path without .md), e.g. 'Projects/Vetos'"),
+        summary: z.string().describe("The concise summary to file"),
+        source: z.string().optional().describe("Optional source note id to backlink"),
+      },
+    },
+    async ({ projectId, summary, source }) =>
+      json({ written: await ctx.fileBrainDump({ projectId, summary, source }) }),
+  );
+
+  server.registerTool(
+    "get_memory_context",
+    {
+      description:
+        "Return the portable, LLM-agnostic memory loader (About Me + active projects/areas) — a digest any LLM can be primed with.",
+      inputSchema: {},
+    },
+    async () => ({ content: [{ type: "text" as const, text: await ctx.getMemoryContext() }] }),
+  );
+
+  server.registerTool(
+    "review_vault",
+    {
+      description:
+        "Run a full-vault review/organize pass: optimizer proposals (orphans, broken links, tags), route inbox captures into projects/areas, and regenerate the memory loader. Set apply=true to write changes.",
+      inputSchema: {
+        apply: z.boolean().default(false).describe("Write routing entries + the memory loader"),
+      },
+    },
+    async ({ apply }) => json(await ctx.reviewVault(apply)),
+  );
+
+  server.registerTool(
+    "get_config",
+    {
+      description: "Read the memory-management policy (the 'what / how / why' settings).",
+      inputSchema: {},
+    },
+    async () => json(await ctx.getConfig()),
+  );
+
+  server.registerTool(
+    "set_config",
+    {
+      description:
+        "Update the memory-management policy. Pass only the fields to change (merged over the current config).",
+      inputSchema: {
+        config: z.record(z.unknown()).describe("Partial MemoryConfig to merge"),
+      },
+    },
+    async ({ config }) =>
+      json(await ctx.setConfig(config as Partial<import("@osb/core").MemoryConfig>)),
   );
 
   server.registerTool(

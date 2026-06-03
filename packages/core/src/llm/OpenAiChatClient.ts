@@ -1,4 +1,4 @@
-import type { LlmClient } from "@osb/core";
+import type { LlmClient } from "../projects/types.js";
 
 export interface OpenAiChatClientOptions {
   apiKey?: string;
@@ -9,8 +9,8 @@ export interface OpenAiChatClientOptions {
 
 /**
  * {@link LlmClient} for an OpenAI-compatible `/chat/completions` endpoint. Uses
- * `fetch`, so there's no SDK dependency. Drives classification + summarization
- * in the brain-dump router.
+ * global `fetch`, so it has no SDK dependency and runs in Node, browsers, and
+ * the Obsidian (desktop + mobile) runtime alike.
  */
 export class OpenAiChatClient implements LlmClient {
   readonly model: string;
@@ -20,7 +20,8 @@ export class OpenAiChatClient implements LlmClient {
 
   constructor(options: OpenAiChatClientOptions = {}) {
     this.model = options.model ?? "gpt-4o-mini";
-    this.#apiKey = options.apiKey ?? process.env.OPENAI_API_KEY ?? "";
+    this.#apiKey =
+      options.apiKey ?? globalThis.process?.env?.OPENAI_API_KEY ?? "";
     this.#baseUrl =
       options.baseUrl ?? "https://api.openai.com/v1/chat/completions";
     this.#temperature = options.temperature ?? 0;

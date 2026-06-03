@@ -58,36 +58,65 @@ Use `-e hash` for a dependency-free embedder (no model download), or `-e api` wi
 1. **Semantic memory** (`MemoryService`) — embeds notes for fuzzy recall (`osb index` / `osb recall`).
 2. **Brain-dump router** (`BrainDumpRouter`) — the *second* memory system. It takes quick captures
    (a daily/inbox note, or a one-off line), uses an LLM to classify each to the best-matching
-   **project**, writes a concise summary, and appends a dated, linked entry under that project's
-   `## Log`. Personal ("About Me") captures are kept separate from project updates.
+   **project or life-area**, writes a concise summary, and appends a dated, linked entry under that
+   note's `## Log`. When nothing fits, it can **create a new project/area** note. Personal
+   ("About Me") captures are kept separate from project/area updates.
 
 ```bash
-# Dry-run: classify captures in the Inbox folder against the Projects folder
-node packages/cli/dist/index.js -v /path/to/vault route --inbox Inbox --projects Projects --llm openai
+# Dry-run: classify captures in the inbox against your projects + areas
+node packages/cli/dist/index.js -v /path/to/vault route
 
-# Route a single thought and write it into the matched project's log
+# Route a single thought and write it into the matched note's log
 node packages/cli/dist/index.js -v /path/to/vault route --dump "Vetos logo: alien-planet, one-color vector mark" --apply
 ```
 
-Set `OPENAI_API_KEY` (or `--llm anthropic` with `ANTHROPIC_API_KEY`) for classification.
+Set `OPENAI_API_KEY` (or set `llm.provider: anthropic` in config with `ANTHROPIC_API_KEY`).
 
-## Google Drive vault (local sync)
+## Unify across LLMs + organize the whole vault
 
-If your vault lives in Google Drive, mirror it locally, run the engine, and push changes back:
+- **Portable memory loader** — `osb context` assembles an LLM-agnostic digest (About Me + active
+  projects/areas) you can paste into *any* LLM (ChatGPT, Gemini, …). `--write` saves it to the
+  configured `memoryLoaderNote`.
+- **Full-vault review** — `osb organize` reviews everything: optimizer checks (orphans, broken links,
+  tags), routes inbox captures into projects/areas (auto-creating where the policy allows), and
+  regenerates the memory loader. `--apply` writes changes; otherwise it's a dry run.
+
+```bash
+node packages/cli/dist/index.js -v /path/to/vault context --write
+node packages/cli/dist/index.js -v /path/to/vault organize --apply
+```
+
+## Memory policy — the "what / how / why" settings
+
+Behavior is governed by `MemoryConfig`, stored at `<vault>/.osb/config.json` (sensible defaults if
+absent; over MCP use `get_config` / `set_config`). Highlights:
+
+- **what:** `projectsFolder`, `areasFolder`, `aboutMeNote`, `inboxFolder`, `memoryLoaderNote`,
+  `classifierGuidance`.
+- **how:** `logHeading`, `autonomy` (`auto`/`confirm`), `autoCreate` (`off`/`propose`/`auto`),
+  `minConfidence`, `summaryStyle`, `explainRouting`, `contextTokenBudget`.
+- **why:** `purpose`; plus `llm` (provider/model) and `drive` (folder id / service-account path).
+
+## Google Drive vault (service-account sync)
+
+If your vault lives in Google Drive, mirror it locally, run the engine, and push changes back. Full
+walkthrough in [docs/google-drive-setup.md](docs/google-drive-setup.md):
 
 ```bash
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json   # account must have vault access
 node packages/cli/dist/index.js sync pull --root <DRIVE_FOLDER_ID> --local ./vault
-# ... index / recall / route against ./vault ...
+# ... organize / route / context against ./vault ...
 node packages/cli/dist/index.js sync push --root <DRIVE_FOLDER_ID> --local ./vault
 ```
 
 `googleapis` is an optional dependency loaded only when you sync. The sync keeps a manifest under
 `.osb/drive-manifest.json` to map local paths to Drive file ids and detect changes.
 
-## MCP server
+## Use it as a Claude plugin (MCP)
 
-Expose the vault to Claude (or any MCP client). Example client config:
+Expose the vault to Claude so Claude itself creates and manages your memory.
+
+**Claude Desktop** — add to `claude_desktop_config.json`:
 
 ```json
 {
@@ -101,10 +130,16 @@ Expose the vault to Claude (or any MCP client). Example client config:
 }
 ```
 
-Tools exposed: `get_note`, `get_backlinks`, `search_notes`, `semantic_search`,
-`query_graph`, `create_note`, `list_projects`, `route_braindump`. Run `osb index` first so
-`semantic_search` has an index to query; set an LLM key (`OPENAI_API_KEY` / `OSB_LLM`) for
-`route_braindump`.
+**Claude Code** — add the same server block to a project `.mcp.json`.
+
+Tools exposed: `get_note`, `get_backlinks`, `search_notes`, `semantic_search`, `query_graph`,
+`list_projects`, `route_braindump`, **`append_to_note`**, **`file_braindump`**,
+**`get_memory_context`**, **`review_vault`**, **`get_config`** / **`set_config`**, `create_note`.
+
+When **Claude drives the MCP it is the classifier** — it reads `list_projects` / `get_memory_context`,
+decides, and writes with `append_to_note` / `file_braindump`, so no extra LLM key is needed. Run
+`osb index` first for `semantic_search`; an LLM key is only needed for the server-side
+`route_braindump` / `review_vault` routing.
 
 ## Development
 

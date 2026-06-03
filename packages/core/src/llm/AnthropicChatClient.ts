@@ -1,4 +1,4 @@
-import type { LlmClient } from "@osb/core";
+import type { LlmClient } from "../projects/types.js";
 
 export interface AnthropicChatClientOptions {
   apiKey?: string;
@@ -8,7 +8,7 @@ export interface AnthropicChatClientOptions {
 }
 
 /**
- * {@link LlmClient} for the Anthropic Messages API. Uses `fetch`, no SDK.
+ * {@link LlmClient} for the Anthropic Messages API. Uses global `fetch`, no SDK.
  * An alternative classifier/summarizer backend for the brain-dump router.
  */
 export class AnthropicChatClient implements LlmClient {
@@ -19,7 +19,8 @@ export class AnthropicChatClient implements LlmClient {
 
   constructor(options: AnthropicChatClientOptions = {}) {
     this.model = options.model ?? "claude-haiku-4-5-20251001";
-    this.#apiKey = options.apiKey ?? process.env.ANTHROPIC_API_KEY ?? "";
+    this.#apiKey =
+      options.apiKey ?? globalThis.process?.env?.ANTHROPIC_API_KEY ?? "";
     this.#baseUrl = options.baseUrl ?? "https://api.anthropic.com/v1/messages";
     this.#maxTokens = options.maxTokens ?? 1024;
     if (!this.#apiKey) {

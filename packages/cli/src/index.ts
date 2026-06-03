@@ -6,11 +6,12 @@ import {
   loadVault,
   searchNotes,
 } from "@osb/core";
-import type { EmbedderKind, LlmKind, StoreKind } from "@osb/memory-node";
+import type { EmbedderKind, StoreKind } from "@osb/memory-node";
 import { createMemory } from "./context.js";
 import { formatGraphStats, graphStats } from "./commands/graph.js";
 import { formatOptimizeReport, optimizeVault } from "./commands/optimize.js";
 import { formatRouteOutcomes, routeBrainDumps } from "./commands/route.js";
+import { buildContext, formatOrganizeReport, organize } from "./commands/organize.js";
 import { syncPull, syncPush } from "./commands/sync.js";
 
 interface GlobalOpts {
@@ -110,31 +111,35 @@ program
 
 program
   .command("route")
-  .description("Second memory: classify brain dumps to projects and append summaries")
+  .description("Second memory: classify brain dumps to projects/areas and append summaries")
   .option("-d, --dump <text>", "route a single brain dump given as text")
-  .option("-i, --inbox <folder>", "folder of capture notes to route", "Inbox")
-  .option("-p, --projects <folder>", "projects folder", "Projects")
-  .option("--llm <kind>", "llm provider: openai | anthropic", "openai")
-  .option("--apply", "write the summaries into project notes (default: dry-run)", false)
-  .action(
-    async (opts: {
-      dump?: string;
-      inbox: string;
-      projects: string;
-      llm: LlmKind;
-      apply: boolean;
-    }) => {
-      const outcomes = await routeBrainDumps({
-        vault: globals().vault,
-        projects: opts.projects,
-        inbox: opts.inbox,
-        dump: opts.dump,
-        llm: opts.llm,
-        apply: opts.apply,
-      });
-      console.log(formatRouteOutcomes(outcomes));
-    },
-  );
+  .option("-i, --inbox <folder>", "folder of capture notes to route (default: from config)")
+  .option("--apply", "write the summaries into the matched notes (default: dry-run)", false)
+  .action(async (opts: { dump?: string; inbox?: string; apply: boolean }) => {
+    const outcomes = await routeBrainDumps({
+      vault: globals().vault,
+      inbox: opts.inbox,
+      dump: opts.dump,
+      apply: opts.apply,
+    });
+    console.log(formatRouteOutcomes(outcomes));
+  });
+
+program
+  .command("context")
+  .description("Build the portable, LLM-agnostic memory loader from the vault")
+  .option("--write", "save it to the configured memory-loader note", false)
+  .action(async (opts: { write: boolean }) => {
+    console.log(await buildContext(globals().vault, opts.write));
+  });
+
+program
+  .command("organize")
+  .description("Full-vault review: optimizer checks + route inbox + regenerate memory loader")
+  .option("--apply", "write routing entries and the memory loader (default: dry-run)", false)
+  .action(async (opts: { apply: boolean }) => {
+    console.log(formatOrganizeReport(await organize(globals().vault, opts.apply)));
+  });
 
 const sync = program
   .command("sync")

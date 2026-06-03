@@ -9,6 +9,26 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./projects": {
+      "types": "./dist/projects/index.d.ts",
+      "import": "./dist/projects/index.js"
+    },
+    "./llm": {
+      "types": "./dist/llm/index.d.ts",
+      "import": "./dist/llm/index.js"
+    },
+    "./config": {
+      "types": "./dist/config/MemoryConfig.d.ts",
+      "import": "./dist/config/MemoryConfig.js"
+    },
+    "./util": {
+      "types": "./dist/util/index.d.ts",
+      "import": "./dist/util/index.js"
+    },
+    "./vault": {
+      "types": "./dist/vault/public.d.ts",
+      "import": "./dist/vault/public.js"
     }
   },
   "files": ["dist"],
