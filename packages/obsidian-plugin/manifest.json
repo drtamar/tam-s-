@@ -1,0 +1,9 @@
+{
+  "id": "obsidian-second-brain",
+  "name": "Second Brain",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "Route brain dumps into projects and life-areas, and maintain a portable memory loader any LLM can use. Works on desktop and mobile.",
+  "author": "Tam",
+  "isDesktopOnly": false
+}

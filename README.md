@@ -15,12 +15,13 @@ surface reuses. **Phase 1** (this milestone) ships the engine, a CLI, and an MCP
 | [`@osb/core`](packages/core) | Pure engine: vault parsing, knowledge graph, memory orchestration, optimizer. No native deps. |
 | [`@osb/memory-node`](packages/memory-node) | Node memory backends: local embeddings (Transformers.js), JSON + sqlite-vec vector stores. |
 | [`@osb/drive`](packages/drive) | Sync the vault between Google Drive and a local folder, so the engine runs on local files. |
-| [`@osb/cli`](packages/cli) | `osb` command-line tool: index, search, recall, graph stats, optimize, route, sync. |
-| [`@osb/mcp-server`](packages/mcp-server) | stdio MCP server exposing the vault to AI assistants. |
+| [`@osb/cli`](packages/cli) | `osb` command-line tool: index, search, recall, graph, optimize, route, organize, context, sync. |
+| [`@osb/mcp-server`](packages/mcp-server) | stdio MCP server exposing the vault to Claude / any MCP client. |
+| [`@osb/obsidian-plugin`](packages/obsidian-plugin) | Obsidian plugin (desktop + **Android**): route brain dumps, build the memory loader. |
 
-> The Obsidian **plugin** and **web app** are planned for later phases. The `@osb/core`
-> engine is already designed to be reused by both (file access sits behind a `VaultReader`
-> interface; native deps are quarantined in `@osb/memory-node`).
+> The same `@osb/core` engine powers every surface — file access sits behind a `VaultReader`
+> interface, and Node-only deps are quarantined in `@osb/memory-node`, so the Obsidian bundle stays
+> mobile-safe. A web app is the remaining planned surface.
 
 ## Architecture at a glance
 

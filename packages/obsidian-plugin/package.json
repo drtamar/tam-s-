@@ -1,0 +1,23 @@
+{
+  "name": "@osb/obsidian-plugin",
+  "version": "0.1.0",
+  "description": "Obsidian plugin (desktop + mobile) for the second-brain router and portable memory loader.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.config.mjs production",
+    "dev": "node esbuild.config.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf main.js .turbo"
+  },
+  "dependencies": {
+    "@osb/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "builtin-modules": "^4.0.0",
+    "esbuild": "^0.24.2",
+    "obsidian": "^1.7.2",
+    "typescript": "^5.7.3"
+  }
+}

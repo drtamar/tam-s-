@@ -1,0 +1,6 @@
+/* Second Brain plugin styles */
+.modal pre {
+  white-space: pre-wrap;
+  max-height: 40vh;
+  overflow: auto;
+}

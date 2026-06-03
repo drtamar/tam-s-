@@ -4,6 +4,7 @@ dist/
 *.tsbuildinfo
 .osb/
 coverage/
+packages/obsidian-plugin/main.js
 .DS_Store
 *.log
 .env

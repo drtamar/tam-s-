@@ -123,6 +123,10 @@ export {
 // Organize / unify (review pass + portable memory loader)
 export { buildMemoryContext } from "./organize/memoryContext.js";
 export {
+  renderMemoryContext,
+  type MemorySnapshot,
+} from "./organize/render.js";
+export {
   organizeVault,
   type OrganizeOptions,
   type OrganizeReport,

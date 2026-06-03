@@ -22,6 +22,10 @@
       "types": "./dist/config/MemoryConfig.d.ts",
       "import": "./dist/config/MemoryConfig.js"
     },
+    "./memory": {
+      "types": "./dist/organize/render.d.ts",
+      "import": "./dist/organize/render.js"
+    },
     "./util": {
       "types": "./dist/util/index.d.ts",
       "import": "./dist/util/index.js"
