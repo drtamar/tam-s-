@@ -167,6 +167,55 @@ export function createServer(options: VaultContextOptions): McpServer {
       json(await ctx.setConfig(config as Partial<import("@osb/core").MemoryConfig>)),
   );
 
+
+  server.registerTool(
+    "remember",
+    {
+      description:
+        "Save ONE short fact to the shared memory that every AI and device reads (Claude, ChatGPT, Gemini, Grok via the Obsidian plugin). Keep it a single sentence.",
+      inputSchema: {
+        text: z.string().describe("The fact, one short sentence"),
+        type: z.enum(["id", "pref", "rule", "goal", "dec", "fact"]).default("fact").describe("id=about the user, pref=preference, rule=standing rule, goal, dec=decision"),
+        scope: z.string().default("about").describe("'about' (always on) or a project/area id like 'Projects/Vetos'"),
+      },
+    },
+    async ({ text, type, scope }) => json(await ctx.remember(text, type, scope, "mcp")),
+  );
+
+  server.registerTool(
+    "get_memory_pack",
+    {
+      description:
+        "Get the compact, token-budgeted shared-memory pack (who the user is + facts relevant to the topic). Call at the start of a conversation instead of reading notes.",
+      inputSchema: {
+        query: z.string().optional().describe("Current topic or message"),
+        scope: z.string().optional().describe("Project/area id to prioritise"),
+        budget_tokens: z.number().int().positive().max(4000).default(600),
+      },
+    },
+    async ({ query, scope, budget_tokens }) => {
+      const pack = await ctx.memoryPack(query, scope, budget_tokens);
+      return { content: [{ type: "text" as const, text: pack.text }] };
+    },
+  );
+
+  server.registerTool(
+    "search_chats",
+    {
+      description:
+        "Search the user's saved chats across all AIs (Claude, OpenAI, Gemini, Grok) and devices: who they talked to, about what, and when.",
+      inputSchema: {
+        query: z.string().optional(),
+        provider: z.enum(["claude", "openai", "gemini", "grok"]).optional(),
+        project: z.string().optional(),
+        from: z.string().optional().describe("YYYY-MM-DD"),
+        to: z.string().optional().describe("YYYY-MM-DD"),
+        limit: z.number().int().positive().max(50).default(10),
+      },
+    },
+    async (filter) => json(await ctx.searchChats(filter)),
+  );
+
   server.registerTool(
     "create_note",
     {

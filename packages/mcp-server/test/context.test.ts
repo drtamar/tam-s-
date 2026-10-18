@@ -104,3 +104,27 @@ describe("VaultContext (write)", () => {
     expect(context).toContain("**Vetos**");
   });
 });
+
+describe("VaultContext (shared memory)", () => {
+  it("remembers a fact, packs it, and finds saved chats", async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "osb-mem-"));
+    try {
+      const ctx = new VaultContext({ vaultDir: tmp });
+      await ctx.remember("Hates repeating himself", "pref");
+      await ctx.remember("Logo is a one-color mark", "fact", "Projects/Vetos");
+      const pack = await ctx.memoryPack("logo", "Projects/Vetos");
+      expect(pack.text).toContain("pref: Hates repeating himself");
+      expect(pack.text).toContain("one-color mark");
+
+      await fs.mkdir(path.join(tmp, "Chats", "2026", "10"), { recursive: true });
+      await fs.writeFile(
+        path.join(tmp, "Chats", "2026", "10", "gemini-logo-x1.md"),
+        "---\ntype: chat\nid: x1\nprovider: gemini\nmodel: m\nagent: Designer\nproject: Projects/Vetos\ntitle: Logo palette\nsummary: palette?\ncreated: 2026-10-18\nupdated: 2026-10-18\n---\n\n# Logo palette\n\n### user\n\nWhich palette suits the logo?\n",
+      );
+      const hits = await ctx.searchChats({ query: "palette" });
+      expect(hits[0]).toMatchObject({ provider: "gemini", agent: "Designer" });
+    } finally {
+      await fs.rm(tmp, { recursive: true, force: true });
+    }
+  });
+});

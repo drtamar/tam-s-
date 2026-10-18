@@ -8,6 +8,18 @@ a CLI for managing and optimizing the vault.
 This is a TypeScript monorepo built around one shared engine (`@osb/core`) that every
 surface reuses. **Phase 1** (this milestone) ships the engine, a CLI, and an MCP server.
 
+## Shared memory + chat inside Obsidian
+
+One memory for every AI you use, kept in plain files in your vault and synced through Google Drive.
+
+- **Facts** are one short sentence per JSONL line (`memory/<device>.jsonl`, one file per device so sync cannot conflict).
+- Each chat turn gets a **token-budgeted memory pack** (who you are, the active project, facts matching your message), as compact text, not JSON, which is cheaper.
+- **Chats** from Claude, OpenAI, Gemini and Grok are saved as notes and searchable by text, AI, agent and date.
+- **Search is BM25 keyword search**: no model download, works offline on a phone, costs nothing.
+- Runs in the Obsidian plugin (desktop + Android) and in Claude Desktop/Code via MCP (`remember`, `get_memory_pack`, `search_chats`).
+
+Setup: [docs/obsidian-setup.md](docs/obsidian-setup.md).
+
 ## Packages
 
 | Package | What it is |
@@ -17,7 +29,7 @@ surface reuses. **Phase 1** (this milestone) ships the engine, a CLI, and an MCP
 | [`@osb/drive`](packages/drive) | Sync the vault between Google Drive and a local folder, so the engine runs on local files. |
 | [`@osb/cli`](packages/cli) | `osb` command-line tool: index, search, recall, graph, optimize, route, organize, context, sync. |
 | [`@osb/mcp-server`](packages/mcp-server) | stdio MCP server exposing the vault to Claude / any MCP client. |
-| [`@osb/obsidian-plugin`](packages/obsidian-plugin) | Obsidian plugin (desktop + **Android**): route brain dumps, build the memory loader. |
+| [`@osb/obsidian-plugin`](packages/obsidian-plugin) | Obsidian plugin (desktop + **Android**): multi-AI chat, chat search, Drive sync, brain-dump router, memory loader. |
 
 > The same `@osb/core` engine powers every surface — file access sits behind a `VaultReader`
 > interface, and Node-only deps are quarantined in `@osb/memory-node`, so the Obsidian bundle stays

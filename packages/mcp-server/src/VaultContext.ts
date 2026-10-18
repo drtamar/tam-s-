@@ -1,5 +1,10 @@
 import {
   BrainDumpRouter,
+  ChatIndex,
+  FactStore,
+  buildPack,
+  type ChatFilter,
+  type FactType,
   MemoryService,
   NodeVaultReader,
   appendUnderHeading,
@@ -219,5 +224,35 @@ export class VaultContext {
     const merged = await saveMemoryConfig(this.#options.vaultDir, partial);
     this.#config = Promise.resolve(merged);
     return merged;
+  }
+
+  // ---- shared memory (same files the Obsidian plugin reads and writes) ----
+  #facts(): FactStore {
+    return new FactStore(this.vault, "mcp");
+  }
+
+  /** Save one short fact into shared memory (memory/mcp.jsonl). */
+  async remember(x: string, t: FactType = "fact", s = "about", src?: string) {
+    return this.#facts().add({ x, t, s, src });
+  }
+
+  /** The compact, token-budgeted memory pack for a topic. */
+  async memoryPack(query?: string, scope?: string, budgetTokens?: number) {
+    return buildPack(await this.#facts().load(), { query, scope, budgetTokens });
+  }
+
+  /** Search saved chats from every AI and device. */
+  async searchChats(filter: ChatFilter) {
+    const index = new ChatIndex(this.vault);
+    await index.refresh();
+    return index.search(filter).map((h) => ({
+      path: h.path,
+      provider: h.meta.provider,
+      agent: h.meta.agent,
+      project: h.meta.project,
+      date: h.meta.created,
+      title: h.meta.title,
+      snippet: h.snippet,
+    }));
   }
 }
