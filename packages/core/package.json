@@ -37,6 +37,10 @@
     "./mem": {
       "types": "./dist/mem/index.d.ts",
       "import": "./dist/mem/index.js"
+    },
+    "./sync": {
+      "types": "./dist/sync/index.d.ts",
+      "import": "./dist/sync/index.js"
     }
   },
   "files": [

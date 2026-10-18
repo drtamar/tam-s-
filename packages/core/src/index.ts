@@ -142,3 +142,6 @@ export { appendUnderHeading } from "./util/markdown.js";
 
 // Shared memory (JSONL facts, context pack, chat notes + search)
 export * from "./mem/index.js";
+
+// Drive sync (engine, REST backend, device sign-in)
+export * from "./sync/index.js";

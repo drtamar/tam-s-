@@ -20,3 +20,15 @@ export {
   renderChat,
 } from "./chat.js";
 export { ChatIndex, type ChatFilter, type ChatHit } from "./chatIndex.js";
+export {
+  DEFAULT_MODELS,
+  PROVIDER_LABELS,
+  createProvider,
+  fetchHttp,
+  type ChatOptions,
+  type ChatProvider,
+  type Http,
+  type HttpRequest,
+  type HttpResponse,
+} from "./providers.js";
+export { ChatSession, type AgentProfile, type Reply, type SessionDeps } from "./session.js";
