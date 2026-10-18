@@ -139,3 +139,6 @@ export { idToPath, noteTitle, pathToId } from "./util/ids.js";
 export { slugify } from "./util/slugify.js";
 export { cosineSimilarity } from "./util/cosine.js";
 export { appendUnderHeading } from "./util/markdown.js";
+
+// Shared memory (JSONL facts, context pack, chat notes + search)
+export * from "./mem/index.js";

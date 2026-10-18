@@ -21,6 +21,12 @@ export interface VaultReader {
   /** List every markdown file in the vault, as vault-relative paths. */
   list(): Promise<NotePath[]>;
 
+  /**
+   * List every file (any extension) under a folder, recursively, as
+   * vault-relative paths. Used for non-markdown data such as `memory/*.jsonl`.
+   */
+  listDir(dir: string): Promise<NotePath[]>;
+
   /** Read a single file's raw contents. */
   read(path: NotePath): Promise<string>;
 

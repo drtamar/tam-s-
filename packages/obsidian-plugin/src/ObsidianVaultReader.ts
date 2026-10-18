@@ -17,7 +17,22 @@ export class ObsidianVaultReader implements VaultReader {
     return this.vault.getMarkdownFiles().map((f) => f.path);
   }
 
+  async listDir(dir: string): Promise<NotePath[]> {
+    // The adapter sees raw files of any extension (Obsidian's index skips
+    // unknown types like .jsonl by default).
+    const out: NotePath[] = [];
+    const walk = async (folder: string): Promise<void> => {
+      if (!(await this.vault.adapter.exists(folder))) return;
+      const listed = await this.vault.adapter.list(folder);
+      out.push(...listed.files);
+      for (const sub of listed.folders) await walk(sub);
+    };
+    await walk(normalizePath(dir));
+    return out.sort();
+  }
+
   async read(path: NotePath): Promise<string> {
+    if (!path.endsWith(".md")) return this.vault.adapter.read(normalizePath(path));
     const file = this.#file(path);
     return this.vault.cachedRead(file);
   }
@@ -32,11 +47,17 @@ export class ObsidianVaultReader implements VaultReader {
   }
 
   async exists(path: NotePath): Promise<boolean> {
+    if (!path.endsWith(".md")) return this.vault.adapter.exists(normalizePath(path));
     return this.vault.getAbstractFileByPath(normalizePath(path)) instanceof TFile;
   }
 
   async write(path: NotePath, content: string): Promise<void> {
     const norm = normalizePath(path);
+    if (!norm.endsWith(".md")) {
+      await this.#ensureFolder(norm);
+      await this.vault.adapter.write(norm, content);
+      return;
+    }
     const existing = this.vault.getAbstractFileByPath(norm);
     if (existing instanceof TFile) {
       await this.vault.modify(existing, content);
@@ -55,8 +76,8 @@ export class ObsidianVaultReader implements VaultReader {
   async #ensureFolder(path: NotePath): Promise<void> {
     const dir = path.split("/").slice(0, -1).join("/");
     if (!dir) return;
-    if (!this.vault.getAbstractFileByPath(dir)) {
-      await this.vault.createFolder(dir).catch(() => {
+    if (!(await this.vault.adapter.exists(dir))) {
+      await this.vault.adapter.mkdir(dir).catch(() => {
         /* already exists / race — ignore */
       });
     }

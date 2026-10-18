@@ -30,6 +30,24 @@ export class NodeVaultReader implements VaultReader {
     return out;
   }
 
+  async listDir(dir: string): Promise<NotePath[]> {
+    const out: NotePath[] = [];
+    const walk = async (abs: string): Promise<void> => {
+      let entries;
+      try {
+        entries = await fs.readdir(abs, { withFileTypes: true });
+      } catch {
+        return;
+      }
+      for (const e of entries) {
+        if (e.isDirectory()) await walk(path.join(abs, e.name));
+        else if (e.isFile()) out.push(this.#rel(path.join(abs, e.name)));
+      }
+    };
+    await walk(this.#abs(dir));
+    return out.sort();
+  }
+
   async read(notePath: NotePath): Promise<string> {
     return fs.readFile(this.#abs(notePath), "utf8");
   }
